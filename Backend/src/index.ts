@@ -5,7 +5,7 @@ import cors from 'cors';
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ noServer:true });
 
 app.use(cors());
 app.use(express.json());
@@ -82,7 +82,11 @@ wss.on('connection', (ws) => {
     }
   });
 });
-
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
+});
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
