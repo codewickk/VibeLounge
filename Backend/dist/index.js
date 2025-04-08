@@ -12,6 +12,16 @@ const server = http_1.default.createServer(app);
 const wss = new ws_1.WebSocketServer({ noServer: true });
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+// Add a keep-alive route
+app.get('/ping', (req, res) => {
+    res.json({ status: 'alive', connections: wss.clients.size });
+});
+// Add debugging info for connection events
+wss.on('connection', (ws, request) => {
+    console.log(`WebSocket connected at ${new Date().toISOString()}`);
+    console.log(`Total connections: ${wss.clients.size}`);
+    // Rest of your connection code...
+});
 app.get('/', (req, res) => {
     res.send('🎉 VibeLounge WebSocket Server is running.');
 });
