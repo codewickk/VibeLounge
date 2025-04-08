@@ -1,33 +1,76 @@
 import React from 'react';
 
 interface MessageProps {
-  message: any;
+  message: {
+    type: string;
+    metadata: {
+      name: string;
+      avatarUrl: string;
+      timestamp: number;
+    };
+    payload?: {
+      message: string;
+    };
+  };
   isSelf: boolean;
 }
 
 const MessageBubble: React.FC<MessageProps> = ({ message, isSelf }) => {
   const { metadata, payload, type } = message;
+  
+  // Handle system messages differently
+  const isSystemMessage = type === 'system';
+  
+  if (isSystemMessage) {
+    return (
+      <div className="flex justify-center my-2">
+        <div className="bg-gray-100 text-gray-600 text-xs py-1 px-3 rounded-full">
+          {payload?.message || 'System notification'}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'} my-2`}>
+    <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'} my-3`}>
       {!isSelf && (
-        <img
-          src={metadata.avatarUrl}
-          alt="avatar"
-          className="w-8 h-8 rounded-full mr-2"
-        />
+        <div className="flex-shrink-0 mr-2">
+          <img
+            src={metadata.avatarUrl}
+            alt="avatar"
+            className="w-8 h-8 rounded-full border border-gray-200"
+            onError={(e) => {
+              // Fallback if image doesn't load
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${metadata.name}&background=random`;
+            }}
+          />
+        </div>
       )}
+      
       <div
-        className={`max-w-xs px-4 py-2 rounded-lg shadow text-sm ${
+        className={`max-w-xs px-4 py-2 rounded-lg shadow-sm ${
           isSelf
             ? 'bg-indigo-500 text-white rounded-br-none'
-            : 'bg-gray-200 text-gray-800 rounded-bl-none'
+            : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'
         }`}
       >
-        <div className="font-semibold">{metadata.name}</div>
-        {type === 'chat' && <div>{payload.message}</div>}
-        <div className="text-xs text-gray-400 mt-1">
-          {new Date(metadata.timestamp).toLocaleTimeString()}
+        <div className="font-medium text-sm">
+          {metadata.name}
+        </div>
+        
+        {type === 'chat' && payload?.message && (
+          <div className="mt-1">{payload.message}</div>
+        )}
+        
+        {type === 'join' && payload?.message && (
+          <div className="text-xs opacity-80">{payload.message}</div>
+        )}
+        
+        <div className={`text-xs mt-1 ${isSelf ? 'text-indigo-100' : 'text-gray-400'}`}>
+          {new Date(metadata.timestamp).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
         </div>
       </div>
     </div>
