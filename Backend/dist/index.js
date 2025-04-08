@@ -40,38 +40,39 @@ wss.on('connection', (ws) => {
                 if (!rooms.has(currentRoomId)) {
                     rooms.set(currentRoomId, new Map());
                 }
-                // Add this client to the room
+                // Check if user with same name already exists in the room
                 const roomClients = rooms.get(currentRoomId);
-                roomClients.set(ws, {
+                // Add this client to the room - using name as key to prevent duplicates
+                roomClients.set(currentUserName, {
                     ws,
                     name: message.metadata.name,
                     avatarUrl: message.metadata.avatarUrl
                 });
-                // Send join notification to everyone in the room INCLUDING sender
+                console.log(`Room ${currentRoomId} now has ${roomClients.size} participants`);
+                // Get unique participant names
+                const participantNames = Array.from(roomClients.keys());
+                // Notify everyone in the room about the new user
                 roomClients.forEach((client) => {
-                    if (client.ws.readyState === ws_1.WebSocket.OPEN) {
-                        // Let everyone know about the new user
-                        if (client.ws !== ws) {
-                            client.ws.send(JSON.stringify({
-                                type: 'join',
-                                metadata: message.metadata,
-                                roomId: message.roomId,
-                                payload: {
-                                    message: `${message.metadata.name} joined the room`
-                                }
-                            }));
-                        }
-                        // Send an updated participant list to everyone
-                        const participantNames = Array.from(roomClients.values()).map(c => c.name);
+                    // First, let others know about the new user
+                    if (client.name !== currentUserName) {
                         client.ws.send(JSON.stringify({
-                            type: 'participantList',
-                            roomId: currentRoomId,
-                            metadata: { name: 'System', timestamp: Date.now() },
+                            type: 'join',
+                            metadata: message.metadata,
+                            roomId: message.roomId,
                             payload: {
-                                participants: participantNames
+                                message: `${message.metadata.name} joined the room`
                             }
                         }));
                     }
+                    // Then send the updated participant list to everyone
+                    client.ws.send(JSON.stringify({
+                        type: 'participantList',
+                        roomId: currentRoomId,
+                        metadata: { name: 'System', timestamp: Date.now() },
+                        payload: {
+                            participants: participantNames
+                        }
+                    }));
                 });
                 // Send welcome message only to the joined user
                 ws.send(JSON.stringify({
@@ -84,7 +85,7 @@ wss.on('connection', (ws) => {
             }
             if (message.type === 'chat' && currentRoomId && rooms.has(currentRoomId)) {
                 const roomClients = rooms.get(currentRoomId);
-                // Broadcast the message to ALL clients in the room, including sender
+                // Broadcast the message to ALL clients in the room
                 roomClients.forEach((client) => {
                     if (client.ws.readyState === ws_1.WebSocket.OPEN) {
                         client.ws.send(JSON.stringify(message));
@@ -100,10 +101,19 @@ wss.on('connection', (ws) => {
         console.log('WebSocket connection closed');
         if (currentRoomId && rooms.has(currentRoomId)) {
             const roomClients = rooms.get(currentRoomId);
-            // Remove this client from the room
-            roomClients.delete(ws);
-            // Notify others that this user left
-            if (currentUserName) {
+            // Find and remove this client from the room
+            let clientRemoved = false;
+            if (currentUserName && roomClients.has(currentUserName)) {
+                const client = roomClients.get(currentUserName);
+                if (client.ws === ws) {
+                    roomClients.delete(currentUserName);
+                    clientRemoved = true;
+                }
+            }
+            // If the client was successfully removed, notify others
+            if (clientRemoved && currentUserName) {
+                // Get updated participant list
+                const participantNames = Array.from(roomClients.keys());
                 roomClients.forEach((client) => {
                     if (client.ws.readyState === ws_1.WebSocket.OPEN) {
                         // Send leave notification
@@ -115,7 +125,6 @@ wss.on('connection', (ws) => {
                             }
                         }));
                         // Send updated participant list
-                        const participantNames = Array.from(roomClients.values()).map(c => c.name);
                         client.ws.send(JSON.stringify({
                             type: 'participantList',
                             roomId: currentRoomId,
