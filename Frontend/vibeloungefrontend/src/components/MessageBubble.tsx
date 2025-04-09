@@ -35,15 +35,17 @@ const MessageBubble: React.FC<MessageProps> = ({ message, isSelf }) => {
     <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'} my-3`}>
       {!isSelf && (
         <div className="flex-shrink-0 mr-2">
-          <img
-            src={metadata.avatarUrl}
-            alt="avatar"
-            className="w-8 h-8 rounded-full border border-gray-200"
-            onError={(e) => {
-              // Fallback if image doesn't load
-              e.currentTarget.src = `https://ui-avatars.com/api/?name=${metadata.name}&background=random`;
-            }}
-          />
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200">
+            <img
+              src={metadata.avatarUrl}
+              alt="avatar"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback if image doesn't load
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${metadata.name}&background=random`;
+              }}
+            />
+          </div>
         </div>
       )}
       

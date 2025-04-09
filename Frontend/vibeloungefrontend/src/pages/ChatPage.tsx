@@ -9,7 +9,7 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
-  const [participants, setParticipants] = useState<string[]>([]);
+  const [participants, setParticipants] = useState<{name: string, avatarUrl: string}[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get data from location state
@@ -41,7 +41,7 @@ const ChatPage: React.FC = () => {
       setConnectionStatus('connected');
       
       // Add yourself to participants
-      setParticipants([name]);
+      setParticipants([{name, avatarUrl}]);
       
       // Join the room
       socket.send(JSON.stringify({
@@ -152,11 +152,33 @@ const ChatPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
           <div>
             <h1 className="text-lg font-semibold text-gray-800">Room: {roomId}</h1>
-            <p className="text-xs text-gray-500">
-              {connectionStatus === 'connected' 
-                ? `${participants.length} participant${participants.length !== 1 ? 's' : ''}: ${participants.join(', ')}` 
-                : 'Connecting...'}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-gray-500">
+                {connectionStatus === 'connected' 
+                  ? `${participants.length} participant${participants.length !== 1 ? 's' : ''}` 
+                  : 'Connecting...'}
+              </p>
+              
+              {/* Show participant avatars */}
+              <div className="flex -space-x-2">
+                {participants.map((participant, idx) => (
+                  <div 
+                    key={idx} 
+                    className="w-6 h-6 rounded-full overflow-hidden border border-white"
+                    title={participant.name}
+                  >
+                    <img 
+                      src={participant.avatarUrl} 
+                      alt={participant.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${participant.name}&background=random`;
+                      }} 
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <button
             onClick={handleLeaveRoom}
