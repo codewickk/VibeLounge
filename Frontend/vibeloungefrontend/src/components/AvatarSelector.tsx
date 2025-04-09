@@ -6,7 +6,7 @@ type Props = {
 };
 
 export default function AvatarSelector({ selected, setSelected }: Props) {
-  // Generate avatar options
+
   const avatars = Array.from({ length: 10 }, (_, i) => `avatar${i + 1}.jpg`);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(selected);
@@ -27,9 +27,9 @@ export default function AvatarSelector({ selected, setSelected }: Props) {
         Choose your avatar
       </label>
 
-      {/* Avatar Selection Grid */}
+    
       <div className="p-4 bg-white rounded-lg border border-gray-200">
-        {/* Selected avatar preview */}
+     
         <div className="flex justify-center mb-4">
           <div 
             className="w-20 h-20 rounded-full overflow-hidden border-2 border-indigo-500 shadow-md cursor-pointer"
@@ -46,7 +46,7 @@ export default function AvatarSelector({ selected, setSelected }: Props) {
           </div>
         </div>
 
-        {/* Grid of avatars */}
+       
         <div className="grid grid-cols-5 gap-3 justify-items-center">
           {avatars.map((avatar) => (
             <div
@@ -73,7 +73,7 @@ export default function AvatarSelector({ selected, setSelected }: Props) {
         </div>
       </div>
 
-      {/* Fullscreen Preview Modal */}
+    
       {isFullscreenOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex flex-col justify-center items-center">
           <div className="relative flex flex-col items-center">
@@ -89,7 +89,7 @@ export default function AvatarSelector({ selected, setSelected }: Props) {
               />
             </div>
 
-            {/* Actions */}
+          
             <div className="flex gap-4">
               <button
                 onClick={selectAndClose}
@@ -105,7 +105,7 @@ export default function AvatarSelector({ selected, setSelected }: Props) {
               </button>
             </div>
 
-            {/* Scrollable Avatar Row */}
+          
             <div className="mt-8 flex gap-4 overflow-x-auto p-4 max-w-full">
               {avatars.map((avatar) => (
                 <div

@@ -18,7 +18,7 @@ interface MessageProps {
 const MessageBubble: React.FC<MessageProps> = ({ message, isSelf }) => {
   const { metadata, payload, type } = message;
   
-  // Handle system messages differently
+
   const isSystemMessage = type === 'system';
   
   if (isSystemMessage) {
@@ -41,7 +41,7 @@ const MessageBubble: React.FC<MessageProps> = ({ message, isSelf }) => {
               alt="avatar"
               className="w-full h-full object-cover"
               onError={(e) => {
-                // Fallback if image doesn't load
+
                 e.currentTarget.src = `https://ui-avatars.com/api/?name=${metadata.name}&background=random`;
               }}
             />

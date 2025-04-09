@@ -12,18 +12,18 @@ const ChatPage: React.FC = () => {
   const [participants, setParticipants] = useState<{name: string, avatarUrl: string}[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get data from location state
+
   const { roomId } = useParams();
   const { name, avatarUrl } = location.state || {};
 
   useEffect(() => {
-    // Validate required data
+
     if (!roomId || !name) {
       navigate('/');
       return;
     }
 
-    // Add system message
+
     setMessages([
       {
         type: 'system',
@@ -32,18 +32,17 @@ const ChatPage: React.FC = () => {
       }
     ]);
 
-    // Create WebSocket connection
+
     const socket = new WebSocket('wss://vibeloungebackend.onrender.com');
     socketRef.current = socket;
 
-    // Connection opened
     socket.onopen = () => {
       setConnectionStatus('connected');
       
-      // Add yourself to participants
+   
       setParticipants([{name, avatarUrl}]);
       
-      // Join the room
+
       socket.send(JSON.stringify({
         type: 'join',
         roomId,
@@ -51,18 +50,18 @@ const ChatPage: React.FC = () => {
       }));
     };
 
-    // Listen for messages
+ 
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         console.log('Received message:', data);
         
-        // Handle different message types
+     
         if (data.type === 'participantList' && data.payload?.participants) {
-          // Update participant list
+        
           setParticipants(data.payload.participants);
         } else {
-          // Add message to chat
+        
           setMessages(prev => [...prev, data]);
         }
       } catch (err) {
@@ -70,7 +69,7 @@ const ChatPage: React.FC = () => {
       }
     };
 
-    // Handle errors
+  
     socket.onerror = (err) => {
       console.error('WebSocket Error:', err);
       setConnectionStatus('error');
@@ -84,7 +83,7 @@ const ChatPage: React.FC = () => {
       ]);
     };
 
-    // Handle disconnect
+ 
     socket.onclose = () => {
       setConnectionStatus('error');
       setMessages(prev => [
@@ -97,7 +96,7 @@ const ChatPage: React.FC = () => {
       ]);
     };
 
-    // Cleanup on unmount
+ 
     return () => {
       if (socket.readyState === WebSocket.OPEN) {
         socket.close();
@@ -105,12 +104,12 @@ const ChatPage: React.FC = () => {
     };
   }, [roomId, name, avatarUrl, navigate]);
 
-  // Auto-scroll to bottom when new messages arrive
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle sending messages
+
   const handleSend = () => {
     if (!newMessage.trim() || connectionStatus !== 'connected') return;
 
@@ -137,7 +136,7 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // Leave room handler
+
   const handleLeaveRoom = () => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.close();
@@ -147,7 +146,7 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header */}
+   
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
           <div>
@@ -158,8 +157,7 @@ const ChatPage: React.FC = () => {
                   ? `${participants.length} participant${participants.length !== 1 ? 's' : ''}` 
                   : 'Connecting...'}
               </p>
-              
-              {/* Show participant avatars */}
+         
               <div className="flex -space-x-2">
                 {participants.map((participant, idx) => (
                   <div 
@@ -189,7 +187,7 @@ const ChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Chat area */}
+
       <div className="flex-1 overflow-y-auto max-w-4xl w-full mx-auto px-4 py-6">
         {messages.map((msg, idx) => (
           <MessageBubble 
@@ -201,7 +199,7 @@ const ChatPage: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message input */}
+
       <div className="bg-white border-t border-gray-200 p-4">
         <div className="max-w-4xl mx-auto flex gap-2">
           <input
